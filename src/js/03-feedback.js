@@ -9,32 +9,46 @@ const refs = {
     formData: {},
 }
 
-refs.formEl.addEventListener("submit", onFormSubmit);
+const savedFormData = localStorage.getItem(STORAGE_KEY);
+const parsedFormData = JSON.parse(savedFormData);
+populateTextarea();
 
-populateTaxterea();
-
-refs.formEl.addEventListener("input", throttle(event => {
+function onFormInput(event) {
+    event.preventDefault();
+    if (savedFormData && parsedFormData.email) {
+        refs.formData.email = refs.inputEl.value;
+    };
+    if (savedFormData && parsedFormData.message) {
+        refs.formData.message = refs.textarea.value;
+    };
     refs.formData[event.target.name] = event.target.value;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(refs.formData));
-}, 500));
+};
+refs.formEl.addEventListener("input", throttle(onFormInput, 500));
 
-function populateTaxterea(event) {
-    const savedFormData = localStorage.getItem(STORAGE_KEY);
-    const parsedFormData = JSON.parse(savedFormData);
-    if (savedFormData) {
-        refs.inputEl.value = parsedFormData.email;
+function populateTextarea(event) {
+    if (savedFormData && parsedFormData.email && parsedFormData.message) {
         refs.textarea.value = parsedFormData.message;
-    };
+        refs.inputEl.value = parsedFormData.email;
+    } else
+    if (savedFormData && parsedFormData.email) {
+        refs.inputEl.value = parsedFormData.email;
+    } else
+    if (savedFormData && parsedFormData.message) {
+        refs.textarea.value = parsedFormData.message;
+    }
 }
 
 function onFormSubmit(event) {
     event.preventDefault();
-    if (refs.inputEl.value === "" || refs.textarea.value === "") {
-        alert("Всі поля повинні бути заповнені.");
-    }
-    else if (refs.inputEl.value !== "" && refs.textarea.value !== "") {
-       event.target.reset();
-        localStorage.removeItem(STORAGE_KEY);
+    if (refs.inputEl.value !== "" && refs.textarea.value !== "") {
+        refs.formData.email = refs.inputEl.value;
+        refs.formData.message = refs.textarea.value;
         console.log(refs.formData);
-    }
+        event.target.reset();
+        localStorage.removeItem(STORAGE_KEY);
+    } else {
+        alert("Всі поля повинні бути заповнені.");
+        }
 };
+refs.formEl.addEventListener("submit", onFormSubmit);
